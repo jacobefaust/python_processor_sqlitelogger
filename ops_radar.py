@@ -30,20 +30,20 @@ OPS24X_UNITS_PREF = 'US'            # US for MPH , UK for Km/H
 OPS24X_SAMPLING_FREQUENCY = 'SX'    # 10Ksps
 OPS24X_TRANSMIT_POWER = 'PX'        # max power
 OPS24X_MAGNITUDE_MIN = 'M>20\n'     # Magnitude must be > this
-OPS24X_DECIMAL_DIGITS = 'F0'        # F-zero for no decimal reporting
+OPS24X_DECIMAL_DIGITS = 'F1'        # F-one for one-digit decimal reporting
 OPS24X_BLANKS_PREF = 'BZ'           # Blanks pref: send 0's not silence
 OPS24X_LIVE_SPEED = 'O1OS'          # OS cancels 9243 mode, enables no-delay speeds.  O1 only one speed
 OPS24X_MAX_REPORTABLE = 'R<200\n'   # Report only < than this speed
 OPS24X_MIN_REPORTABLE = f'R>{TARGET_MIN_SPEED_ALLOWED}\n'       # Report only > this speed
 OPS24X_BIDIRECTIONAL = "R|"
 OPS24X_INBOUND_ONLY  = "R+"
-OPS24X_OUTBOUND_ONLY = "R|"
+OPS24X_OUTBOUND_ONLY = "R-"
 OPS24X_DIRECTION_PREF = OPS24X_BIDIRECTIONAL
 
 # These are for lab development only, so hand-waves are usable
-OPS24X_UNITS_PREF = 'UC'  # "UC" for cm/s
-TARGET_MAX_SPEED_ALLOWED = 150
-OPS24X_DIRECTION_PREF = OPS24X_INBOUND_ONLY
+# OPS24X_UNITS_PREF = 'UC'  # "UC" for cm/s
+# TARGET_MAX_SPEED_ALLOWED = 150
+# OPS24X_DIRECTION_PREF = OPS24X_INBOUND_ONLY
 # remove them when moving to actual vehicle testing.
 
 
@@ -51,7 +51,7 @@ OPS24X_DIRECTION_PREF = OPS24X_INBOUND_ONLY
 serial_port = serial.Serial()  # we will initialize it in main_init()
 
 
-def send_ops24x_cmd(logging_prefix,ops24x_command):
+def send_ops24x_cmd(logging_prefix: str, ops24x_command: str):
     """
     send commands to the OPS24x module
 
@@ -103,7 +103,7 @@ def read_velocity():
     return None
 
 
-def is_speed_in_allowed(velocity):
+def is_speed_in_allowed(velocity: float) -> bool:
     """boolean function returns True if the argument is in acceptable range
 
     Parameter:
@@ -206,7 +206,7 @@ def main_loop():
                     logging.debug(f'not tracking.  received speed:{abs(velocity)} ({is_valid_speed}) ')
 
                     # only if IDLE_NOTICE_INTERVAL do we do idle notices
-                    if IDLE_NOTICE_INTERVAL>0 and not is_valid_speed:
+                    if IDLE_NOTICE_INTERVAL > 0 and not is_valid_speed:
                         idle_current_time = time.time() # start the current timer over
                         idle_delta_time = idle_current_time - idle_start_time
                         if idle_delta_time > IDLE_NOTICE_INTERVAL:
@@ -231,7 +231,7 @@ def main_loop():
             # logging.info('start tracking for acquire')
             # Save old and new speeds
             prior_velocity = recent_velocity
-            velocity = read_velocity()   
+            velocity = read_velocity()
             if velocity is None:
                 continue
 
@@ -333,8 +333,6 @@ def main_loop():
                                 logging.info('target lost.  seeing zeros')
                         target_acquired = False
                         tracking = False
-        # end if tracking
-    # end the not-tracking -> tracking loop.  do it again
 
 
 if __name__ == "__main__":
