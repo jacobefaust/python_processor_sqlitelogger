@@ -61,7 +61,7 @@ class SqliteLogger:
 
         self.config["LOG_FILEPATH"] = (
             Path(self.config["LOG_FILEDIR"])
-            / f"SpeedRecording_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log"
+            / f"SpeedRecording_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
         )
         
         logging.basicConfig(
