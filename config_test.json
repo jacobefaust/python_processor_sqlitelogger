@@ -1,0 +1,17 @@
+{
+    "OPS24X_PARAMETERS": {
+        "OPS24X_UNITS": "US",
+        "OPS24X_SAMPLING_FREQUENCY": "SX",
+        "OPS24X_TRANSMIT_POWER": "PX",
+        "OPS24X_MAGNITUDE_MIN": "M>2\n",
+        "OPS24X_MAGNITUDE_MAX": "M<10\n",
+        "OPS24X_DECIMAL_DIGITS": "F1",
+        "OPS24X_NO_DELAY_PACKET": "OS",
+        "OPS24X_SINGLE_MEASUREMENT": "O1",
+        "OPS24X_DIRECTION": "R|",
+        "OPS24X_BLANK_HANDLING": "BV"
+    },
+    "LOG_FILEDIR": "/home/pi/",
+    "PORT": "/dev/ttyACM0",
+    "CURSOR_BUFFER_SIZE": 10
+}
