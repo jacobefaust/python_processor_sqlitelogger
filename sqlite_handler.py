@@ -225,7 +225,12 @@ if __name__ == "__main__":
     with open(Path(args.config_path)) as r:
         config_dict = json.load(r)
 
+
     with SqliteLogger(config_dict) as sl:
-        sl.listen()
+
+        print(config_dict)
+
+        print(sl.__dict__)
+        # sl.listen()
 # set up main process to run this async (how to make this run in the background
 # without needing an open ssh session
