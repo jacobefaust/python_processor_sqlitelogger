@@ -218,7 +218,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("config_path",type=str, required=True)
+    parser.add_argument("config_path",type=str)
 
     parser.parse_args()
 
