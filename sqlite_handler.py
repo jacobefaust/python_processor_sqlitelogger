@@ -218,11 +218,11 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("config_path",type=str)
+    parser.add_argument("config_path", type=str)
 
-    parser.parse_args()
+    args = parser.parse_args()
 
-    with open(Path(parser.config_path)) as r:
+    with open(Path(args.config_path)) as r:
         config_dict = json.load(r)
 
     with SqliteLogger(config_dict) as sl:
