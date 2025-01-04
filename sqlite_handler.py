@@ -222,7 +222,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    with open(Path(args.config_path)) as r:
+    with open(Path(args.config_path), 'r') as r:
         config_dict = json.load(r)
 
 
