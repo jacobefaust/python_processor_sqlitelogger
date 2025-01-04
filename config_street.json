@@ -11,7 +11,7 @@
         "OPS24X_DIRECTION": "R|",
         "OPS24X_BLANK_HANDLING": "BV"
     },
-    "LOG_FILEDIR": "/home/pi/",
+    "LOG_FILEDIR": "/home/radarpi/",
     "PORT": "/dev/ttyACM0",
     "CURSOR_BUFFER_SIZE": 10
 }
