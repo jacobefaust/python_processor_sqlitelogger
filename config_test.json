@@ -9,9 +9,10 @@
         "OPS24X_NO_DELAY_PACKET": "OS",
         "OPS24X_SINGLE_MEASUREMENT": "O1",
         "OPS24X_DIRECTION": "R|",
-        "OPS24X_BLANK_HANDLING": "BV"
+        "OPS24X_BLANK_HANDLING": "BT"
     },
     "LOG_FILEDIR": "/home/radarpi/",
     "PORT": "/dev/ttyACM0",
-    "CURSOR_BUFFER_SIZE": 10
+    "CURSOR_BUFFER_SIZE": 10,
+    "MAX_TIME": 100
 }

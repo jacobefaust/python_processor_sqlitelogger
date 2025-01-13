@@ -5,6 +5,8 @@ import logging
 from pathlib import Path
 import serial
 import sqlite3
+import time
+from typing import List, Tuple
 
 
 class SqliteLogger:
@@ -52,10 +54,6 @@ class SqliteLogger:
         # force cursor buffer size
         if "CURSOR_BUFFER_SIZE" not in config.keys():
             config["CURSOR_BUFFER_SIZE"] = 10
-        
-        # force reporting of time
-        if "OPS24X_TIME_REPORT" not in config["OPS24X_PARAMETERS"].keys():
-            config["OPS24X_PARAMETERS"]["OPS24X_TIME_REPORT"] = "OT"
 
         self.config = config
 
@@ -97,8 +95,14 @@ class SqliteLogger:
 
         # Initialize and query Ops24x Module
         logging.info("Initializing OPS24x Module")
-        for k, v in self.config["OPS24X_PARAMETERS"]:
-            self._send_ops24x_cmd(k, v)
+        for v in self.config["OPS24X_PARAMETERS"].values():
+            self._send_ops24x_cmd(v)
+
+        # force time reporting
+        self._send_ops24x_cmd("OT")
+
+        # handle out-of-range sampling
+        self._send_ops24x_cmd("BT")
 
         self._sync_time()
 
@@ -107,13 +111,6 @@ class SqliteLogger:
             response = self._send_ops24x_cmd(
                 "CONFIG_QUERY", k
             )
-            response = [
-                tuple(
-                    y.replace('"', "")
-                    for y in x.split(":")
-                )
-                for x in response.split("}{")
-            ]
             for item in response:
                 self.db_cursor.execute(
                     self.INSERT_INTO_METADATA,
@@ -152,39 +149,61 @@ class SqliteLogger:
         
     def _send_ops24x_cmd(
         self,
-        parameter_key: str,
         ops24x_command: str
-    ) -> str:
-        """send commands to the OPS24x module"""
+    ) -> List[Tuple]:
+        """send commands to the OPS24x module and returns
+        back a list of tuples containing key, value pairs
+        of various configuration settings
+
+        PARAMETERS
+        ----------
+        ops24x_command:  the two letter coded configuration
+        query
+
+        RETURNS
+        -------
+        Utilizing the non-json output format, tuples of
+        (parameter, value) of the OPS24X board is returned.
+        
+        """
         data_for_send_str = ops24x_command
         data_for_send_bytes = str.encode(data_for_send_str)
-        logging.info(f"Send {parameter_key}: {ops24x_command}")
+        logging.info(f"Send: {ops24x_command}")
         self.serial_port.write(data_for_send_bytes)
 
-        data_rx_str = ""
         # Print out module response to command string
-        while not ser_write_verify:
-            data_rx_bytes = self.serial_port.readline()
-            if len(data_rx_bytes):
-                data_rx_str = str(data_rx_bytes)
-                if data_rx_str.find('{'):
-                    logging.debug(data_rx_str)
-                    ser_write_verify = True
-        return data_rx_str
+        data_rx_list = self.serial_port.readlines()
+        out_list = []
+        for sample_bytes in data_rx_list:
+            sample_str = sample_bytes.decode()
+
+            if "{" in sample_str:
+                sample_str = (
+                    sample_str[1:-3].replace('"', '')
+                )
+                for entry in sample_str.split(","):
+                    out_list.append(tuple(entry.split(":")))
+
+        return out_list
 
     def _read_measurement(self) -> tuple:
-        """read usb port for measurements"""
+        """read usb port for measurements
+        
+        RETURNS
+        -------
+        None if no measurement detected (the enforced
+        output settings ensure just a timestamp is sent)
+
+        Otherwise a tuple of (sample time, measured speed)
+        is sent where each value is a float.
+        """
         measurement = None
         ops24x_rx_bytes = self.serial_port.readline()
-        ops24x_rx_bytes_length = len(ops24x_rx_bytes)
-        # a case can be made that if the length is 0, it's a newline char so try again
-        if ops24x_rx_bytes_length:
-            ops24x_rx_str = str(ops24x_rx_bytes)
-            if ops24x_rx_str.find('{') == -1:  # really, { would only be found in first char
-                # Speed data found (maybe)
-                measurement = tuple(
-                    float(x) for x in ops24x_rx_str.split(",")
-                )
+        ops24x_rx_str = ops24x_rx_bytes.decode()
+        if ops24x_rx_str.find(',') == -1:
+            measurement = tuple(
+                float(x) for x in ops24x_rx_str[:-2].split(",")
+            )
         return measurement
 
     def listen(self):
@@ -192,9 +211,16 @@ class SqliteLogger:
 
         cursor_buffer = 0
 
+        start_time = time.time()
         while True:
             self.serial_port.flushInput()
             self.serial_port.flushOutput()
+
+            if (
+                "MAX_TIME" in self.config
+                and time.time() - start_time > self.config["MAX_TIME"]
+            ):
+                break
 
             meas_tup = self._read_measurement()
             if meas_tup:
@@ -225,12 +251,6 @@ if __name__ == "__main__":
     with open(Path(args.config_path), 'r') as r:
         config_dict = json.load(r)
 
-
     with SqliteLogger(config_dict) as sl:
 
-        print(config_dict)
-
-        print(sl.__dict__)
-        # sl.listen()
-# set up main process to run this async (how to make this run in the background
-# without needing an open ssh session
+        sl.listen()
