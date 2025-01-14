@@ -13,7 +13,7 @@ class SqliteLogger:
 
     create_metadata_table = (
         """ CREATE TABLE metadata(
-        parameter PRIMARY KEY TEXT,
+        parameter TEXT PRIMARY KEY NOT NULL,
         value TEXT)
         """
     )
@@ -24,7 +24,8 @@ class SqliteLogger:
 
     create_speedsamples_table = (
         """ CREATE TABLE speed_samples(
-        time REAL NOT NULL, speed REAL NOT NULL)
+        time REAL PRIMARY KEY NOT NULL,
+        speed REAL NOT NULL)
         """
     )
 
