@@ -86,13 +86,15 @@ class SqliteLogger:
         self.serial_port.open()
         self.serial_port.flushInput()
         self.serial_port.flushOutput()
+        logging.info('Serial Port Connection Established')
 
         self.db_conn = sqlite3.connect(
             self.config["LOG_FILEPATH"].with_suffix(".db")
         )
         self.db_cursor = self.db_conn.cursor()
-
+        logging.info('Sqlite Database Connection Established')
         self._build_tables()
+        logging.info("Sqlite Database Tables Constructed")
 
         # Initialize and query Ops24x Module
         logging.info("Initializing OPS24x Module")
@@ -117,6 +119,8 @@ class SqliteLogger:
                     self.INSERT_INTO_METADATA,
                     tuple(item)
                 )
+            
+            self.db_conn.commit()
 
     def __exit__(self):
         logging.info("Exiting Sqlite_Handler")
@@ -133,7 +137,7 @@ class SqliteLogger:
             self.create_speedsamples_table
         )
 
-        self.db_cursor.commit()
+        self.db_conn.commit()
 
     def _sync_time(self):
         """sync OPS24X board time with wall time"""
@@ -146,7 +150,7 @@ class SqliteLogger:
             self.INSERT_INTO_METADATA,
             ("OPS24X_STARTTIME", str(datetime.now()))
         )
-        self.db_cursor.commit()
+        self.db_conn.commit()
         
     def _send_ops24x_cmd(
         self,
@@ -167,10 +171,10 @@ class SqliteLogger:
         (parameter, value) of the OPS24X board is returned.
         
         """
-        data_for_send_str = ops24x_command
-        data_for_send_bytes = str.encode(data_for_send_str)
         logging.info(f"Send: {ops24x_command}")
-        self.serial_port.write(data_for_send_bytes)
+        self.serial_port.write(
+            str.encode(ops24x_command)
+        )
 
         # Print out module response to command string
         data_rx_list = self.serial_port.readlines()
@@ -209,6 +213,7 @@ class SqliteLogger:
 
     def listen(self):
         """listen to OPS24X board for speed measurements"""
+        logging.info("Entering Measurement Listening Mode")
 
         cursor_buffer = 0
 
@@ -237,7 +242,7 @@ class SqliteLogger:
                 cursor_buffer += 1
             
                 if cursor_buffer >= self.config["CURSOR_BUFFER_SIZE"]:
-                    self.db_cursor.commit()
+                    self.db_conn.commit()
                     cursor_buffer = 0
 
 
