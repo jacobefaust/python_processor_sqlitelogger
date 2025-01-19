@@ -5,6 +5,7 @@ import logging
 from pathlib import Path
 import serial
 import sqlite3
+import sys
 import time
 from typing import List, Tuple
 
@@ -71,7 +72,7 @@ class SqliteLogger:
                     self.config["LOG_FILEPATH"],
                     mode="w"
                 ),
-                logging.StreamHandler()
+                logging.StreamHandler(stream=sys.stdout)
             ]
         )
     
