@@ -64,11 +64,15 @@ class SqliteLogger:
         )
         
         logging.basicConfig(
-            filename=self.config["LOG_FILEPATH"], 
-            level=logging.DEBUG,
-            filemode='w',
             format='%(asctime)s-%(levelname)s-%(name)s:: %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
+            datefmt='%Y-%m-%d %H:%M:%S',
+            handlers=[
+                logging.FileHandler(
+                    self.config["LOG_FILEPATH"],
+                    mode="w"
+                ),
+                logging.StreamHandler()
+            ]
         )
     
     def __enter__(self):
